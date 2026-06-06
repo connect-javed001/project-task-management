@@ -1,327 +1,522 @@
-# Quick Start Guide - Role-Based Task Management System
-
-## 5-Minute Setup
-
-### Prerequisites
-- PHP 8.3+
-- MySQL 8.0+
-- Node.js 18+
-- Composer
-
-### Installation
-
-```bash
-# 1. Clone or navigate to project
-cd /Users/javedk/practice/demo
-
-# 2. Install PHP dependencies
-composer install
-
-# 3. Install Node dependencies
-npm install
-
-# 4. Copy environment file
-cp .env.example .env
-
-# 5. Generate app key
-php artisan key:generate
-
-# 6. Create database
-mysql -u root -p -e "CREATE DATABASE demo IF NOT EXISTS;"
-
-# 7. Run migrations
-php artisan migrate
-
-# 8. Seed test data
-php artisan db:seed
-
-# 9. Build frontend
-npm run build
-```
-
-## Running the Application
-
-### Development Mode
-
-```bash
-# Terminal 1: Start Laravel server
-php artisan serve
-
-# Terminal 2: Run queue worker
-php artisan queue:work
-
-# Terminal 3: Run scheduler
-php artisan schedule:run --verbose
-
-# Terminal 4: Build frontend with hot reload
-npm run dev
-```
-
-### Access the Application
-
-- **API Base URL**: http://localhost:8000/api
-- **Frontend**: http://localhost:3000 (if React dev server running)
-
-## Test API Endpoints
-
-### 1. Login
-
-```bash
-curl -X POST http://localhost:8000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@example.com",
-    "password": "password123"
-  }'
-```
-
-Save the token from response.
-
-### 2. Get Projects (replace TOKEN with actual token)
-
-```bash
-curl -X GET http://localhost:8000/api/projects \
-  -H "Authorization: Bearer TOKEN"
-```
-
-### 3. Create Task
-
-```bash
-curl -X POST http://localhost:8000/api/tasks \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "project_id": 1,
-    "name": "New Task",
-    "description": "Task description",
-    "priority": "high",
-    "status": "todo",
-    "deadline": "2026-06-20 18:00:00",
-    "assigned_to_id": 4,
-    "estimated_hours": 8
-  }'
-```
-
-### 4. Submit Work Log
-
-```bash
-curl -X POST http://localhost:8000/api/tasks/1/work-logs \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "description": "Completed design mockups",
-    "hours_worked": 6
-  }'
-```
-
-### 5. Get Dashboard Statistics
-
-```bash
-curl -X GET http://localhost:8000/api/dashboard/stats \
-  -H "Authorization: Bearer TOKEN"
-```
-
-## Test Users
-
-```
-Admin:
-  Email: admin@example.com
-  Password: password123
-  Role: admin
-
-Manager 1:
-  Email: manager1@example.com
-  Password: password123
-  Role: manager
-
-Employee 1:
-  Email: employee1@example.com
-  Password: password123
-  Role: employee
-
-(Similar for employee2-5)
-```
-
-## Database Credentials
-
-```
-Host: 127.0.0.1
-User: root
-Password: Javed@123
-Database: demo
-```
-
-## Project Structure
-
-```
-app/
-├── Console/
-│   └── Kernel.php              (Scheduled jobs)
-├── Http/
-│   ├── Controllers/
-│   │   └── Api/
-│   │       ├── AuthController.php
-│   │       ├── ProjectController.php
-│   │       ├── TaskController.php
-│   │       ├── WorkLogController.php
-│   │       ├── WorkLogCommentController.php
-│   │       ├── ActivityLogController.php
-│   │       └── ReportController.php
-│   └── Requests/
-├── Jobs/
-│   └── CheckDeadlinesAndNotify.php
-├── Models/
-│   ├── User.php
-│   ├── Project.php
-│   ├── Task.php
-│   ├── WorkLog.php
-│   ├── WorkLogComment.php
-│   ├── ActivityLog.php
-│   └── DeadlineNotification.php
-├── Notifications/
-│   ├── DeadlineReminderNotification.php
-│   └── OverdueTaskNotification.php
-└── Policies/
-
-database/
-├── migrations/          (All schemas)
-└── seeders/            (Test data)
-
-routes/
-├── api.php            (API endpoints)
-└── web.php            (Frontend routes)
-
-resources/js/
-└── Pages/             (React components)
-    ├── Auth/
-    ├── Dashboard/
-    ├── Projects/
-    ├── Tasks/
-    ├── WorkLogs/
-    ├── ActivityLogs/
-    └── Reports/
-```
-
-## Features Implemented
-
-✅ **Phase 1**: Database schema & migrations
-✅ **Phase 2**: Models & Controllers with RBAC
-✅ **Phase 3**: Work logs & comments system
-✅ **Phase 4**: Email notifications & background jobs
-✅ **Phase 5**: API routes & authentication
-✅ **Phase 6**: Reports & analytics endpoints
-✅ **Phase 7**: Testing preparation
-
-## Remaining Tasks for Full Deployment
-
-- [ ] React UI components (Phase 5 - Frontend)
-- [ ] Email configuration (SMTP/SendGrid)
-- [ ] Redis queue setup (production)
-- [ ] Policies for fine-grained authorization
-- [ ] Comprehensive test suite
-- [ ] API rate limiting
-- [ ] Deployment to production server
-
-## Troubleshooting
-
-### Migrations fail
-```bash
-php artisan migrate:refresh --seed
-```
-
-### Clear cache
-```bash
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-```
-
-### Check scheduler
-```bash
-php artisan schedule:list
-```
-
-### Test notifications
-```bash
-php artisan tinker
-> Mail::raw('Test', function ($m) { $m->to('test@example.com'); });
-```
-
-## API Response Examples
-
-### Success Response
-```json
-{
-  "id": 1,
-  "name": "Website Redesign",
-  "status": "active",
-  "created_at": "2026-06-05T03:16:02.000000Z"
-}
-```
-
-### Error Response
-```json
-{
-  "message": "Unauthorized",
-  "exception": "AuthorizationException"
-}
-```
-
-### Paginated Response
-```json
-{
-  "data": [...],
-  "links": {
-    "first": "http://localhost:8000/api/projects?page=1",
-    "last": "http://localhost:8000/api/projects?page=5",
-    "prev": null,
-    "next": "http://localhost:8000/api/projects?page=2"
-  },
-  "meta": {
-    "current_page": 1,
-    "from": 1,
-    "last_page": 5,
-    "per_page": 15,
-    "total": 75
-  }
-}
-```
-
-## Performance Tips
-
-1. **Eager Load Relations**
-   - Always load related models to avoid N+1 queries
-
-2. **Use Pagination**
-   - Never return unlimited results
-
-3. **Index Frequently Queried Columns**
-   - Foreign keys, status, deadline, etc.
-
-4. **Cache Reports**
-   - Cache expensive dashboard calculations
-
-5. **Queue Heavy Operations**
-   - Email sending, exports, notifications
-
-## Next Steps
-
-1. Review API documentation in `API_DOCUMENTATION.md`
-2. Create React components for UI
-3. Configure email service for production
-4. Set up Redis for queue caching
-5. Implement rate limiting
-6. Write comprehensive tests
-7. Deploy to production
-
-## Support
-
-For issues or questions, refer to:
-- Laravel Documentation: https://laravel.com/docs
-- Sanctum API Auth: https://laravel.com/docs/sanctum
-- React Documentation: https://react.dev
-- Inertia.js: https://inertiajs.com
+# Role-Based Task Management System
+
+A scalable task and project management system built with Laravel, React, MySQL, and REST APIs.
+
+The application provides:
+
+* Role-Based Access Control (RBAC)
+* Project & Task Management
+* Work Logs & Activity Tracking
+* Background Job Processing
+* Deadline Notifications
+* Reports & Dashboard Analytics
+* Swagger API Documentation
 
 ---
 
-**System Status**: ✅ Backend API Ready for Frontend Integration
+# Tech Stack
+
+## Backend
+
+* PHP 8.3+
+* Laravel 11
+* MySQL 8
+* Laravel Queue System
+* Laravel Notifications
+* Laravel Policies
+* Laravel Sanctum/JWT Authentication
+
+## Frontend
+
+* React.js
+* Vite
+* Axios
+
+## Dev Tools
+
+* Composer
+* Node.js 18+
+* npm
+* Swagger (l5-swagger)
+
+---
+
+# Features
+
+## Authentication & Authorization
+
+* Secure login API
+* Role-based permissions
+* Admin / Manager / Employee access control
+
+## Project Management
+
+* Create and manage projects
+* Assign managers and employees
+* Track project progress
+
+## Task Management
+
+* Create tasks
+* Assign users
+* Priority & status tracking
+* Deadline management
+
+## Work Logs
+
+* Daily work submission
+* Time tracking
+* Work comments & discussions
+
+## Notifications
+
+* Deadline reminders
+* Overdue task notifications
+* Queue-based background processing
+
+## Reporting & Analytics
+
+* Dashboard statistics
+* Task completion metrics
+* Productivity tracking
+
+## Audit Trail
+
+* Activity logging system
+* User action history
+
+---
+
+# Architecture Decisions & Assumptions
+
+## 1. Laravel as Backend Framework
+
+Laravel was selected because it provides:
+
+* Clean MVC architecture
+* Built-in queue system
+* Authentication support
+* Notification handling
+* Eloquent ORM
+* Scalable API development
+
+This reduced development time while maintaining clean architecture.
+
+---
+
+## 2. REST API Architecture
+
+The application follows RESTful API principles:
+
+* Resource-based endpoints
+* Stateless communication
+* JSON responses
+* Token-based authentication
+
+Benefits:
+
+* Frontend/backend separation
+* Easier mobile integration
+* Scalability
+
+---
+
+## 3. Role-Based Access Control (RBAC)
+
+Three primary roles were implemented:
+
+### Admin
+
+* Full system access
+* User management
+* Project oversight
+
+### Manager
+
+* Manage assigned projects
+* Assign tasks
+* Review reports
+
+### Employee
+
+* View assigned tasks
+* Submit work logs
+* Update progress
+
+Authorization logic is centralized using Laravel middleware and policies.
+
+---
+
+## 4. Queue-Based Notification System
+
+Heavy operations such as:
+
+* Email notifications
+* Deadline reminders
+* Background processing
+
+are handled using Laravel queues.
+
+Benefits:
+
+* Faster API response times
+* Better scalability
+* Async processing
+
+---
+
+## 5. Database Design
+
+Normalized relational database structure was used.
+
+Key relationships:
+
+* One Project → Many Tasks
+* One Task → Many Work Logs
+* One User → Many Assigned Tasks
+
+Indexes were added on:
+
+* Foreign keys
+* Status fields
+* Deadlines
+
+to improve query performance.
+
+---
+
+## 6. Activity Logging
+
+A dedicated activity log table tracks:
+
+* User actions
+* Task updates
+* Project changes
+
+This improves:
+
+* Auditing
+* Debugging
+* Accountability
+
+---
+
+## 7. API Documentation
+
+Swagger documentation was integrated using l5-swagger.
+
+Benefits:
+
+* Easier API testing
+* Better developer onboarding
+* Clear API contracts
+
+Documentation endpoint:
+`/api/documentation`
+
+---
+
+## 8. Frontend Separation
+
+Frontend was separated from backend using React.
+
+Advantages:
+
+* Cleaner architecture
+* Easier scaling
+* Better UI flexibility
+* Independent deployments
+
+---
+
+## 9. Scalability Considerations
+
+The system was designed with scalability in mind:
+
+* Queue workers
+* Pagination
+* Eager loading
+* Background jobs
+* Modular architecture
+
+---
+
+# Assumptions
+
+* Single organization usage for v1
+* Email notifications are sufficient (no SMS/push notifications)
+* Users belong to predefined roles only
+* Authentication handled via API tokens
+* MySQL is used as primary relational database
+
+---
+
+# Out of Scope (v1)
+
+The following features were intentionally excluded from the first version:
+
+* Multi-tenant architecture
+* Real-time chat
+* File uploads
+* OAuth/social login
+* Advanced analytics dashboards
+* Mobile applications
+* WebSocket live updates
+* AI-based task recommendations
+
+---
+
+# Installation Guide
+
+## Prerequisites
+
+* PHP 8.3+
+* MySQL 8+
+* Node.js 18+
+* Composer
+
+---
+
+# Setup Instructions
+
+## 1. Clone Repository
+
+```bash
+git clone https://github.com/connect-javed001/project-task-management.git
+cd project-task-management
+```
+
+---
+
+## 2. Install Backend Dependencies
+
+```bash
+composer install
+```
+
+---
+
+## 3. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+---
+
+## 4. Configure Environment
+
+```bash
+cp .env.example .env
+```
+
+Update database credentials inside `.env`.
+
+---
+
+## 5. Generate Application Key
+
+```bash
+php artisan key:generate
+```
+
+---
+
+## 6. Create Database
+
+```bash
+mysql -u root -p
+```
+
+```sql
+CREATE DATABASE demo;
+```
+
+---
+
+## 7. Run Migrations
+
+```bash
+php artisan migrate
+```
+
+---
+
+## 8. Seed Sample Data
+
+```bash
+php artisan db:seed
+```
+
+---
+
+## 9. Build Frontend
+
+```bash
+npm run build
+```
+
+---
+
+# Running the Application
+
+## Terminal 1 — Laravel Server
+
+```bash
+php artisan serve
+```
+
+---
+
+## Terminal 2 — Queue Worker
+
+```bash
+php artisan queue:work
+```
+
+---
+
+## Terminal 3 — Scheduler
+
+```bash
+php artisan schedule:work
+```
+
+---
+
+## Terminal 4 — Frontend Dev Server
+
+```bash
+npm run dev
+```
+
+---
+
+# Application URLs
+
+## Backend API
+
+```txt
+http://localhost:8000/api
+```
+
+## Frontend
+
+```txt
+http://localhost:3000
+```
+
+## Swagger API Docs
+
+```txt
+http://localhost:8000/api/documentation
+```
+
+---
+
+# Test Users
+
+## Admin
+
+```txt
+Email: admin@example.com
+Password: password123
+```
+
+## Manager
+
+```txt
+Email: manager1@example.com
+Password: password123
+```
+
+## Employee
+
+```txt
+Email: employee1@example.com
+Password: password123
+```
+
+---
+
+# Example API Endpoints
+
+## Login
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+-H "Content-Type: application/json" \
+-d '{
+  "email": "admin@example.com",
+  "password": "password123"
+}'
+```
+
+---
+
+## Get Projects
+
+```bash
+curl -X GET http://localhost:8000/api/projects \
+-H "Authorization: Bearer TOKEN"
+```
+
+---
+
+## Create Task
+
+```bash
+curl -X POST http://localhost:8000/api/tasks \
+-H "Authorization: Bearer TOKEN" \
+-H "Content-Type: application/json" \
+-d '{
+  "project_id": 1,
+  "name": "New Task",
+  "priority": "high",
+  "status": "todo"
+}'
+```
+
+---
+
+# Performance Optimizations
+
+* Eager loading to avoid N+1 queries
+* Pagination for large datasets
+* Queue workers for heavy operations
+* Indexed database columns
+* Cached reports and analytics
+
+---
+
+# Future Improvements
+
+* Docker support
+* CI/CD pipeline
+* Unit & feature test coverage
+* Redis queue driver
+* Real-time notifications
+* WebSocket integration
+---
+
+# System Status
+
+Backend API and Frontend UI are integrated successfully.
+
+Current status:
+
+* Backend APIs: Completed
+* Authentication: Completed
+* RBAC: Completed
+* Queue System: Completed
+* Notifications: Completed
+* Frontend Integration: Completed
+* Production Deployment: Pending
+
+---
+
+# Author
+
+Javed Khan
+
+Senior Software Developer
